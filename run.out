@@ -1,0 +1,30 @@
+[0;35m========================================[0m
+[0;35m  🛍️  Starting Shopify Bundle App[0m
+[0;35m========================================[0m
+
+[0;34m[STEP 1][0m Killing any existing processes...
+[0;34m[STEP 2][0m Starting backend server...
+[0;34m[INFO][0m Backend started with PID: 44975
+[0;34m[INFO][0m Backend log: /Users/ankurpandey/Desktop/GSTBundle/backend.log
+[0;34m[STEP 3][0m Testing backend connection...
+[0;32m[SUCCESS][0m ✅ Backend is running on port 5000
+[0;34m[STEP 4][0m Starting frontend server...
+[0;34m[INFO][0m Frontend started with PID: 45136
+[0;34m[INFO][0m Frontend log: /Users/ankurpandey/Desktop/GSTBundle/frontend.log
+[0;34m[STEP 5][0m Application started successfully!
+
+[0;32m[SUCCESS][0m 🎉 Shopify Bundle App is running!
+
+[0;34m[INFO][0m 📱 Frontend: http://localhost:3000
+[0;34m[INFO][0m 🔧 Backend:  http://localhost:5000
+[0;34m[INFO][0m 📊 Health:   http://localhost:5000/health
+[0;34m[INFO][0m 🛍️ Shopify:  http://localhost:5000/api/shopify/test-connection
+
+[0;34m[INFO][0m 📋 Logs:
+[0;34m[INFO][0m    Backend: tail -f /Users/ankurpandey/Desktop/GSTBundle/backend.log
+[0;34m[INFO][0m    Frontend: tail -f /Users/ankurpandey/Desktop/GSTBundle/frontend.log
+
+[0;34m[INFO][0m Press Ctrl+C to stop all servers
+
+/Users/ankurpandey/Desktop/GST/start-bundle-app.sh: line 141: 44975 Hangup: 1               /Users/ankurpandey/.nvm/versions/node/v18.20.8/bin/node "$BACKEND_DIR/server.js" > "$PROJECT_ROOT/backend.log" 2>&1  (wd: ~/Desktop/GSTBundle/backend)
+/Users/ankurpandey/Desktop/GST/start-bundle-app.sh: line 141: 45136 Hangup: 1               npm start > "$PROJECT_ROOT/frontend.log" 2>&1

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bundle Display Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        .info {
+            color: blue;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bundle Display Test Results</h1>
+    
+    <div class="test-section">
+        <h2>✅ What We Fixed</h2>
+        <ul>
+            <li class="success">✓ Created FastBundle-style inline display (bundle-display-inline.liquid)</li>
+            <li class="success">✓ Components now display directly below product title/price</li>
+            <li class="success">✓ Original "Add to Cart" button now adds all component products</li>
+            <li class="success">✓ Variant synchronization across all components</li>
+            <li class="success">✓ Automatic theme installation with proper placement</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>📋 Test Product Details</h2>
+        <p><strong>Product:</strong> (@Debina Bonnerjee) Stripe Technicolour Coord Set</p>
+        <p><strong>Product ID:</strong> 7698929287362</p>
+        <p><strong>URL:</strong> <a href="https://labeldc-estore.myshopify.com/products/stripe-technicolour-coord-set" target="_blank">View on Store</a></p>
+        
+        <h3>Component Products Created:</h3>
+        <ul>
+            <li>Top - ₹2499.00 (ID: 8157903552706)</li>
+            <li>Bottom - ₹3500.00 (ID: 8157903716546)</li>
+        </ul>
+        <p><strong>Total Bundle Price:</strong> ₹5999.00</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔍 What You Should See on Product Page</h2>
+        <ol>
+            <li><strong>Product Title</strong> - (@Debina Bonnerjee) Stripe Technicolour Coord Set</li>
+            <li><strong>Bundle Components</strong> - Listed inline below title/price:
+                <ul>
+                    <li>Each component with thumbnail image (60x60px)</li>
+                    <li>Component name and price</li>
+                    <li>Variant selector (only visible for first component)</li>
+                </ul>
+            </li>
+            <li><strong>Original Add to Cart Button</strong> - Clicking adds ALL components</li>
+            <li><strong>Cart Behavior</strong> - Shows individual line items for each component</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h2>🛠️ How It Works</h2>
+        <pre>
+1. Bundle Detection:
+   - Checks product.metafields.bundle_app.is_bundle
+   - Loads component_products from metafields
+   
+2. Component Display:
+   - Renders inline with FastBundle styling
+   - No separate container or borders
+   - Clean, integrated appearance
+   
+3. Cart Override:
+   - Intercepts form submit event
+   - Prevents default behavior
+   - Adds all components via /cart/add.js API
+   
+4. Variant Sync:
+   - First component selector controls all
+   - Other selectors hidden but synchronized
+   - Ensures matching variants across bundle
+        </pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>🚨 Troubleshooting</h2>
+        <p>If components are not showing:</p>
+        <ul>
+            <li>Check browser console for JavaScript errors</li>
+            <li>Verify product has metafield: <code>bundle_app.is_bundle = 'true'</code></li>
+            <li>Ensure theme snippet is installed: <code>snippets/bundle-display.liquid</code></li>
+            <li>Confirm product template includes: <code>{% include 'bundle-display' %}</code></li>
+        </ul>
+        
+        <p>To verify installation:</p>
+        <pre>curl http://localhost:5000/api/theme/check-installation</pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>✨ Key Features Implemented</h2>
+        <ul>
+            <li class="success">✓ FastBundle-style inline display (not in separate container)</li>
+            <li class="success">✓ Components show with thumbnails, names, and prices</li>
+            <li class="success">✓ Single variant selector (others hidden but synced)</li>
+            <li class="success">✓ Original Add to Cart adds ALL components</li>
+            <li class="success">✓ Each component added as separate cart line item</li>
+            <li class="success">✓ Automatic variant synchronization</li>
+            <li class="success">✓ Clean integration with existing theme</li>
+        </ul>
+    </div>
+</body>
+</html>
