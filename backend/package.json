@@ -5,6 +5,7 @@
   "main": "serverV2.js",
   "scripts": {
     "start": "node serverV2.js",
+    "build": "echo 'No build step required for Node.js backend'",
     "dev": "nodemon serverV2.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -15,8 +16,6 @@
     "migrate:status": "knex migrate:status",
     "seed": "knex seed:run",
     "db:setup": "npm run migrate && npm run seed",
-    "build": "echo 'No build step required'",
-    "postinstall": "npm run migrate",
     "health": "curl -f http://localhost:${PORT:-5000}/health || exit 1"
   },
   "keywords": [
