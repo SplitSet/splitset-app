@@ -36,6 +36,7 @@ app.use('/api/bundle-template', require('./routes/bundleTemplate')); // Bundle t
 app.use('/api/metafields', require('./routes/metafields')); // Metafield definitions
 app.use('/api/app-toggle', require('./routes/appToggle')); // App activation/deactivation
 app.use('/api/component-visibility', require('./routes/componentVisibility')); // Component product visibility
+app.use('/api/analytics', require('./routes/analytics')); // Analytics routes
 
 // Health check
 app.get('/health', (req, res) => {
@@ -44,7 +45,7 @@ app.get('/health', (req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    message: 'Shopify Bundle App API is running'
+    message: 'SplitSet API is running'
   });
 });
 
@@ -67,7 +68,16 @@ app.use('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Shopify Bundle App server running on port ${PORT}`);
+  console.log(`🚀 SplitSet server running on port ${PORT}`);
   console.log(`📱 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
   console.log(`🏪 Shopify Store: ${process.env.SHOPIFY_STORE_DOMAIN || 'Not configured'}`);
+
+  // Schedule analytics cache refresh every 30 minutes
+  const analyticsService = require('./services/analyticsService');
+  const intervalMs = (parseInt(process.env.ANALYTICS_REFRESH_MINUTES || '30', 10)) * 60 * 1000;
+  const tick = async () => {
+    try { await analyticsService.refreshCache(); } catch (_) {}
+  };
+  tick();
+  setInterval(tick, intervalMs);
 });

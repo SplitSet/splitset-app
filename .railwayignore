@@ -1,0 +1,12 @@
+frontend/
+scripts/
+docs/
+*.md
+.git/
+node_modules/
+.env
+.env.local
+.env.development
+.secrets-generated
+TEST_REPORT.md
+*.log

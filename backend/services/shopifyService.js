@@ -1,4 +1,5 @@
 const axios = require('axios');
+const ProductTaggingService = require('../utils/productTagging');
 
 class ShopifyService {
   constructor() {
@@ -125,7 +126,7 @@ class ShopifyService {
         body_html: this.generateBundleDescription(originalProduct, bundleConfig),
         vendor: originalProduct.vendor,
         product_type: originalProduct.product_type + ' Bundle',
-        tags: [...(originalProduct.tags ? originalProduct.tags.split(',') : []), 'bundle', 'upsell'].join(','),
+        tags: ProductTaggingService.getBundleProductTags(originalProduct.tags || '', bundleConfig),
         images: originalProduct.images,
         variants: this.createBundleVariants(originalProduct, bundleConfig),
         metafields: [

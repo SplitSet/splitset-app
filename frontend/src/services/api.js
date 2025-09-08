@@ -7,12 +7,40 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Include cookies for authentication
 });
 
-// Response interceptor for error handling
+// Request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor for error handling and token refresh
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    // Check for new token in response headers
+    const newToken = response.headers['x-new-token'];
+    if (newToken) {
+      localStorage.setItem('authToken', newToken);
+    }
+    return response.data;
+  },
   (error) => {
+    // Handle authentication errors
+    if (error.response?.status === 401) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+      return Promise.reject(new Error('Session expired. Please login again.'));
+    }
+    
     const message = error.response?.data?.error || error.response?.data?.message || error.message;
     throw new Error(message);
   }
@@ -192,6 +220,117 @@ export const simulateCartAdd = (cartItems) => {
       });
     }, 1000);
   });
+};
+
+export const fetchSplitterSummary = async () => {
+  const response = await api.get('/analytics/splitter/summary');
+  return response.data;
+};
+
+export const refreshSplitterSummary = async () => {
+  const response = await api.post('/analytics/splitter/refresh');
+  return response.data;
+};
+
+// Authentication API
+export const register = async (userData) => {
+  const response = await api.post('/auth/register', userData);
+  if (response.data?.token) {
+    localStorage.setItem('authToken', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+  }
+  return response;
+};
+
+export const login = async (credentials) => {
+  const response = await api.post('/auth/login', credentials);
+  if (response.data?.token) {
+    localStorage.setItem('authToken', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+  }
+  return response;
+};
+
+export const logout = async () => {
+  try {
+    await api.post('/auth/logout');
+  } catch (error) {
+    // Continue with local logout even if API call fails
+  } finally {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+  }
+};
+
+export const getCurrentUser = async () => {
+  const response = await api.get('/auth/me');
+  if (response.data?.user) {
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+  }
+  return response;
+};
+
+export const updateProfile = async (profileData) => {
+  const response = await api.put('/auth/me', profileData);
+  return response;
+};
+
+export const changePassword = async (passwordData) => {
+  const response = await api.post('/auth/change-password', passwordData);
+  return response;
+};
+
+export const forgotPassword = async (email) => {
+  const response = await api.post('/auth/forgot-password', { email });
+  return response;
+};
+
+export const resetPassword = async (token, password) => {
+  const response = await api.post('/auth/reset-password', { token, password });
+  return response;
+};
+
+export const checkAuthStatus = async () => {
+  const response = await api.get('/auth/status');
+  return response;
+};
+
+// Store-specific analytics (updated for authentication)
+export const fetchStoreAnalytics = async (storeId, year, month) => {
+  const params = {};
+  if (year) params.year = year;
+  if (month) params.month = month;
+  
+  const response = await api.get(`/analytics/${storeId}/summary`, { params });
+  return response;
+};
+
+export const refreshStoreAnalytics = async (storeId, force = false) => {
+  const response = await api.post(`/analytics/${storeId}/refresh`, { force });
+  return response;
+};
+
+// User's stores
+export const fetchUserStores = async () => {
+  const response = await api.get('/stores');
+  return response;
+};
+
+// Utility functions for authentication
+export const isAuthenticated = () => {
+  const token = localStorage.getItem('authToken');
+  const user = localStorage.getItem('user');
+  return !!(token && user);
+};
+
+export const getStoredUser = () => {
+  const user = localStorage.getItem('user');
+  return user ? JSON.parse(user) : null;
+};
+
+export const clearAuth = () => {
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('user');
 };
 
 export default api;

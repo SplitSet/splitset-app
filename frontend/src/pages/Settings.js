@@ -183,7 +183,7 @@ const Settings = () => {
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <h4 className="font-medium text-yellow-900 mb-2">Setup Required</h4>
               <p className="text-sm text-yellow-800 mb-3">
-                To use the Bundle App, you need to configure your Shopify credentials in the backend/.env file.
+                To use SplitSet, you need to configure your Shopify credentials in the backend/.env file.
               </p>
               <div className="text-sm text-yellow-800">
                 <p className="font-medium">Required Environment Variables:</p>
@@ -266,12 +266,12 @@ const Settings = () => {
             </a>
 
             <div className="p-4 border border-gray-200 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">Bundle App Features</h4>
+              <h4 className="font-medium text-gray-900 mb-2">SplitSet Features</h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Create product bundles with automatic cart transformation</li>
+                <li>• Create product sets with automatic cart transformation</li>
                 <li>• Add upsells and complementary products</li>
-                <li>• Track bundle performance and analytics</li>
-                <li>• Duplicate products with custom bundle titles</li>
+                <li>• Track set performance and analytics</li>
+                <li>• Duplicate products with custom set titles</li>
                 <li>• Shopify-native integration with proper inventory tracking</li>
               </ul>
             </div>

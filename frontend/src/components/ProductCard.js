@@ -2,8 +2,8 @@ import React from 'react';
 import { 
   Copy, 
   ExternalLink, 
-  Layers, 
-  IndianRupee,
+  Package, 
+  DollarSign,
   Tag,
   Eye
 } from 'lucide-react';
@@ -34,7 +34,7 @@ const ProductCard = ({ product, viewMode = 'grid', onDuplicate }) => {
                 />
               ) : (
                 <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                  <Layers className="w-8 h-8 text-gray-400" />
+                  <Package className="w-8 h-8 text-gray-400" />
                 </div>
               )}
             </div>
@@ -56,13 +56,13 @@ const ProductCard = ({ product, viewMode = 'grid', onDuplicate }) => {
 
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <IndianRupee className="w-4 h-4 text-gray-400" />
+                  <DollarSign className="w-4 h-4 text-gray-400" />
                   <span className="font-medium text-gray-900">
-                    ₹{price.toFixed(2)}
+                    ${price.toFixed(2)}
                   </span>
                   {hasDiscount && (
                     <span className="text-sm text-gray-500 line-through">
-                      ₹{compareAtPrice.toFixed(2)}
+                      ${compareAtPrice.toFixed(2)}
                     </span>
                   )}
                 </div>
@@ -114,7 +114,7 @@ const ProductCard = ({ product, viewMode = 'grid', onDuplicate }) => {
           />
         ) : (
           <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-            <Layers className="w-16 h-16 text-gray-400" />
+            <Package className="w-16 h-16 text-gray-400" />
           </div>
         )}
         
@@ -173,11 +173,11 @@ const ProductCard = ({ product, viewMode = 'grid', onDuplicate }) => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
             <span className="text-lg font-semibold text-gray-900">
-              ₹{price.toFixed(2)}
+              ${price.toFixed(2)}
             </span>
             {hasDiscount && (
               <span className="text-sm text-gray-500 line-through">
-                ₹{compareAtPrice.toFixed(2)}
+                ${compareAtPrice.toFixed(2)}
               </span>
             )}
           </div>

@@ -1,6 +1,7 @@
 const shopifyService = require('./shopifyService');
 const dynamicVariantService = require('./dynamicVariantService');
 const componentVisibilityService = require('./componentVisibilityService');
+const ProductTaggingService = require('../utils/productTagging');
 
 class SetProcessorService {
   constructor() {
@@ -156,7 +157,7 @@ class SetProcessorService {
         body_html: this.generateComponentDescription(originalProduct, componentName, pieceCount),
         vendor: originalProduct.vendor,
         product_type: originalProduct.product_type,
-        tags: `${originalProduct.tags || ''}, component, auto-generated, set-component, hidden-component`.split(',').filter(Boolean).join(','),
+        tags: ProductTaggingService.getComponentProductTags(originalProduct.tags || '', componentName, index),
         images: originalProduct.images, // Use same images as original
         options: originalProduct.options, // Same variant options
         variants: this.generateComponentVariants(originalProduct.variants, priceSplit[index]),
@@ -519,7 +520,7 @@ class SetProcessorService {
         // Update product with bundle info and new pricing
         const updateData = {
           body_html: bundleDescription, // Keep original description
-          tags: [...(originalProduct.tags ? originalProduct.tags.split(',') : []), 'bundle', 'auto-bundle', `${pieceCount}-piece-set`, 'cart-transform', 'fast-bundle'].join(','),
+          tags: ProductTaggingService.getOriginalProductTags(originalProduct.tags || '', pieceCount),
           variants: variantUpdates,
           template_suffix: 'bundle' // Use the dedicated bundle template
         };

@@ -2,14 +2,15 @@ import React from 'react';
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import { 
+  Package, 
   ShoppingCart, 
   TrendingUp, 
   DollarSign,
+  Plus,
   ArrowRight,
   Activity,
   Layers,
-  AlertCircle,
-  Settings
+  AlertCircle
 } from 'lucide-react';
 
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -51,7 +52,7 @@ const Dashboard = () => {
     {
       name: 'Total Products',
       value: products?.length || 0,
-      icon: Layers,
+      icon: Package,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100'
     },
@@ -98,7 +99,7 @@ const Dashboard = () => {
           Shopify Connection Required
         </h3>
         <p className="text-gray-500 mb-4">
-          Please configure your Shopify connection to use the bundle app.
+          Please configure your Shopify connection to use SplitSet.
         </p>
         <Link to="/settings" className="btn-primary">
           Configure Settings
@@ -113,19 +114,19 @@ const Dashboard = () => {
       <div className="bg-gradient-to-r from-shopify-500 to-shopify-600 rounded-2xl p-8 text-white">
         <div className="max-w-3xl">
           <h1 className="text-3xl font-bold mb-2">
-            Welcome to Bundle App
+            Welcome to SplitSet
           </h1>
           <p className="text-shopify-100 mb-6">
-            Create powerful product bundles with upsells and automatic cart transformation. 
+            Create powerful product sets with upsells and automatic cart transformation. 
             Boost your average order value and increase customer satisfaction.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link to="/settings" className="btn bg-white text-shopify-600 hover:bg-shopify-50">
-              <Settings className="w-4 h-4 mr-2" />
-              Activate Bundle App
+            <Link to="/bundles/create" className="btn bg-white text-shopify-600 hover:bg-shopify-50">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Your First Set
             </Link>
-            <Link to="/sets" className="btn border-2 border-white text-white hover:bg-white hover:text-shopify-600">
-              Manage Sets
+            <Link to="/products" className="btn border-2 border-white text-white hover:bg-white hover:text-shopify-600">
+              Browse Products
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
           </div>
@@ -184,7 +185,7 @@ const Dashboard = () => {
                       />
                     ) : (
                       <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <Layers className="w-6 h-6 text-gray-400" />
+                        <Package className="w-6 h-6 text-gray-400" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
@@ -192,7 +193,7 @@ const Dashboard = () => {
                         {product.title}
                       </p>
                       <p className="text-sm text-gray-500">
-                        ₹{product.variants[0]?.price || 0}
+                        ${product.variants[0]?.price || 0}
                       </p>
                     </div>
                     <span className="badge badge-success">Bundle</span>
@@ -202,9 +203,9 @@ const Dashboard = () => {
             ) : (
               <div className="text-center py-8">
                 <Layers className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 mb-4">Bundle app is currently deactivated</p>
-                <Link to="/settings" className="btn-primary text-sm">
-                  Go to Settings
+                <p className="text-gray-500 mb-4">No bundle products yet</p>
+                <Link to="/bundles/create" className="btn-primary text-sm">
+                  Create Bundle
                 </Link>
               </div>
             )}
@@ -214,50 +215,37 @@ const Dashboard = () => {
         {/* Quick Actions */}
         <div className="card">
           <div className="card-header">
-            <h3 className="font-semibold text-gray-900">App Status & Actions</h3>
+            <h3 className="font-semibold text-gray-900">Quick Actions</h3>
           </div>
           <div className="card-body">
             <div className="space-y-4">
-              {/* App Status */}
-              <div className="flex items-center p-4 border border-red-200 rounded-lg bg-red-50">
-                <div className="p-2 bg-red-100 rounded-lg mr-4">
-                  <AlertCircle className="w-5 h-5 text-red-600" />
-                </div>
-                <div>
-                  <h4 className="font-medium text-red-900">Bundle App Deactivated</h4>
-                  <p className="text-sm text-red-700">
-                    Bundle functionality is currently disabled. Activate in Settings.
-                  </p>
-                </div>
-              </div>
-
               <Link
-                to="/sets"
+                to="/bundles/create"
                 className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <div className="p-2 bg-blue-100 rounded-lg mr-4">
-                  <Layers className="w-5 h-5 text-blue-600" />
+                <div className="p-2 bg-shopify-100 rounded-lg mr-4">
+                  <Plus className="w-5 h-5 text-shopify-600" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">Set Manager</h4>
+                  <h4 className="font-medium text-gray-900">Create Bundle</h4>
                   <p className="text-sm text-gray-500">
-                    Process and manage product sets
+                    Turn any product into a bundle with upsells
                   </p>
                 </div>
                 <ArrowRight className="w-5 h-5 text-gray-400 ml-auto" />
               </Link>
 
               <Link
-                to="/settings"
+                to="/products"
                 className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <div className="p-2 bg-green-100 rounded-lg mr-4">
-                  <Settings className="w-5 h-5 text-green-600" />
+                <div className="p-2 bg-blue-100 rounded-lg mr-4">
+                  <Package className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">App Settings</h4>
+                  <h4 className="font-medium text-gray-900">Browse Products</h4>
                   <p className="text-sm text-gray-500">
-                    Configure app settings and toggle activation
+                    View and manage all your products
                   </p>
                 </div>
                 <ArrowRight className="w-5 h-5 text-gray-400 ml-auto" />

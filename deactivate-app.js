@@ -144,3 +144,4 @@ async function deactivateAppNow() {
 
 // Run the deactivation
 deactivateAppNow();
+

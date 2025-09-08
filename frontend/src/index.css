@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom CSS for the Shopify Bundle App */
+/* Custom CSS for SplitSet App */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -154,4 +154,97 @@ body {
 /* Focus styles for accessibility */
 .focus-visible:focus {
   @apply outline-none ring-2 ring-shopify-500 ring-offset-2;
+}
+
+/* Elastic button animations */
+@keyframes elastic-in {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes elastic-out {
+  0% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Button elastic effects */
+.btn-elastic {
+  @apply transform transition-all duration-150 ease-out;
+  will-change: transform;
+}
+
+.btn-elastic:active {
+  animation: elastic-in 0.15s ease-out;
+  transform: scale(0.95);
+}
+
+.btn-elastic:not(:active) {
+  animation: elastic-out 0.15s ease-out;
+}
+
+/* Enhanced button hover effects */
+.btn-elastic:hover:not(:disabled) {
+  @apply scale-105 shadow-lg;
+  transform: translateY(-1px) scale(1.02);
+}
+
+.btn-elastic:disabled {
+  @apply transform-none;
+}
+
+/* Specific elastic effects for different button types */
+.btn-primary.btn-elastic:active {
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.btn-secondary.btn-elastic:active {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.btn-danger.btn-elastic:active {
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Icon button elastic effects */
+.icon-btn-elastic {
+  @apply transform transition-all duration-150 ease-out;
+  will-change: transform;
+}
+
+.icon-btn-elastic:active {
+  animation: elastic-in 0.15s ease-out;
+  transform: scale(0.9);
+}
+
+.icon-btn-elastic:hover:not(:disabled) {
+  @apply scale-110;
+  transform: scale(1.1);
+}
+
+/* Card elastic effects */
+.card-elastic {
+  @apply transform transition-all duration-200 ease-out;
+  will-change: transform;
+}
+
+.card-elastic:hover {
+  @apply scale-105 shadow-xl;
+  transform: translateY(-2px) scale(1.02);
+}
+
+.card-elastic:active {
+  @apply scale-100;
+  transform: translateY(0px) scale(1.0);
 }

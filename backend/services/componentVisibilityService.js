@@ -328,3 +328,4 @@ class ComponentVisibilityService {
 }
 
 module.exports = new ComponentVisibilityService();
+
