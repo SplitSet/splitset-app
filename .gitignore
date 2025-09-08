@@ -1,0 +1,8 @@
+
+# Logs and sensitive data
+*.log
+backend/server.log
+backend.log
+# Large files
+**/node_modules/**/*.pack
+frontend/node_modules/
