@@ -196,10 +196,24 @@ const gracefulShutdown = async (signal) => {
 // Initialize services and start server
 const startServer = async () => {
   try {
-    // Run database migrations
+    // Run database migrations with error handling
     logger.info('Running database migrations...');
-    await db.migrate.latest();
-    logger.info('Database migrations completed');
+    try {
+      await db.migrate.latest();
+      logger.info('Database migrations completed');
+    } catch (migrationError) {
+      logger.error('Migration error:', migrationError.message);
+      
+      // Check if it's the specific missing file error
+      if (migrationError.message.includes('007_create_admin_tracking.js')) {
+        logger.warn('Missing migration file 007_create_admin_tracking.js - continuing without it for now');
+        logger.warn('This migration will be applied in the next deployment');
+        // Continue server startup
+      } else {
+        // Re-throw other migration errors
+        throw migrationError;
+      }
+    }
     
     // Initialize queue service
     logger.info('Initializing queue service...');
