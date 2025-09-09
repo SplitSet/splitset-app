@@ -19,6 +19,7 @@ const analyticsRoutes = require('./routes/analyticsV2');
 const productsRoutes = require('./routes/products');
 const ordersRoutes = require('./routes/orders');
 const maintenanceRoutes = require('./routes/maintenance');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,7 +45,10 @@ app.use(cors({
     const allowedOrigins = [
       process.env.FRONTEND_URL || 'http://localhost:3000',
       'http://localhost:3000',
-      'http://localhost:3001'
+      'http://localhost:3001',
+      'https://splitset.vercel.app',
+      'https://splitset.in',
+      'https://www.splitset.in'
     ];
     
     // Allow requests with no origin (mobile apps, etc.)
@@ -53,6 +57,7 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      logger.warn('CORS blocked request', { origin, allowedOrigins });
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -104,6 +109,7 @@ app.use('/api/analytics', analyticsRoutes); // Has its own auth middleware
 app.use('/api/products', authenticate, productsRoutes);
 app.use('/api/orders', authenticate, ordersRoutes);
 app.use('/api/maintenance', maintenanceRoutes); // Has its own auth middleware
+app.use('/api/admin', adminRoutes); // Has its own auth middleware (admin only)
 
 // Legacy routes (for backward compatibility)
 app.use('/api/shopify', require('./routes/shopifyFixed'));
@@ -113,6 +119,10 @@ app.use('/api/bundle-template', require('./routes/bundleTemplate'));
 app.use('/api/metafields', require('./routes/metafields'));
 app.use('/api/app-toggle', require('./routes/appToggle'));
 app.use('/api/component-visibility', require('./routes/componentVisibility'));
+
+// New store management routes
+app.use('/api/stores', require('./routes/storeSettings')); // Store settings management
+app.use('/api/stores', require('./routes/splitsetControl')); // SplitSet control functionality
 
 // 404 handler
 app.use('*', (req, res) => {
