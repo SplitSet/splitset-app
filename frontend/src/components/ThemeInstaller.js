@@ -1,22 +1,31 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { CheckCircle, XCircle, Loader, Download, Trash2, Info } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const ThemeInstaller = () => {
+  const { currentStore } = useAuth();
   const [installing, setInstalling] = useState(false);
   const [uninstalling, setUninstalling] = useState(false);
   const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
   const [installationStatus, setInstallationStatus] = useState(null);
 
-  // Check installation status on mount
+  // Check installation status on mount and when store changes
   React.useEffect(() => {
-    checkInstallation();
-  }, []);
+    if (currentStore?.id) {
+      checkInstallation();
+    }
+  }, [currentStore?.id]);
 
   const checkInstallation = async () => {
+    if (!currentStore?.id) {
+      console.error('No store selected');
+      return;
+    }
+    
     try {
-      const response = await axios.get('/api/theme/check-installation');
+      const response = await axios.get(`/api/theme/${currentStore.id}/check-installation`);
       setInstallationStatus(response.data);
     } catch (error) {
       console.error('Error checking installation:', error);
@@ -24,12 +33,17 @@ const ThemeInstaller = () => {
   };
 
   const handleInstall = async () => {
+    if (!currentStore?.id) {
+      setError('No store selected');
+      return;
+    }
+
     setInstalling(true);
     setError(null);
     setStatus(null);
 
     try {
-      const response = await axios.post('/api/theme/install-bundle-display');
+      const response = await axios.post(`/api/theme/${currentStore.id}/install-bundle-display`);
       
       if (response.data.success) {
         setStatus({
@@ -50,6 +64,11 @@ const ThemeInstaller = () => {
   };
 
   const handleUninstall = async () => {
+    if (!currentStore?.id) {
+      setError('No store selected');
+      return;
+    }
+
     if (!window.confirm('Are you sure you want to uninstall the bundle display from your theme?')) {
       return;
     }
@@ -59,7 +78,7 @@ const ThemeInstaller = () => {
     setStatus(null);
 
     try {
-      const response = await axios.post('/api/theme/uninstall-bundle-display');
+      const response = await axios.post(`/api/theme/${currentStore.id}/uninstall-bundle-display`);
       
       if (response.data.success) {
         setStatus({

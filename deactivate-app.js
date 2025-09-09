@@ -9,7 +9,7 @@ async function deactivateAppNow() {
   console.log('🔄 Deactivating Bundle App immediately...');
   
   const SHOPIFY_DOMAIN = 'labeldc.com';
-  const ACCESS_TOKEN = 'your_shopify_access_token_here'; // Replace with actual token
+  const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN || 'YOUR_TOKEN_HERE'; // Set via environment variable
   const THEME_ID = '143347351746';
   
   try {

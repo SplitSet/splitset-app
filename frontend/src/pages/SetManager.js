@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from 'react-query';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   Play, 
   CheckCircle, 
@@ -22,7 +23,10 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ThemeInstaller from '../components/ThemeInstaller';
 
 const SetManager = () => {
+  const { currentStore } = useAuth();
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [nextPageInfo, setNextPageInfo] = useState(null);
   const [showProcessAll, setShowProcessAll] = useState(false);
   const [processingState, setProcessingState] = useState(null); // null, 'processing', 'splitting', 'completed'
   const [showThemeInstaller, setShowThemeInstaller] = useState(false);
@@ -42,19 +46,67 @@ const SetManager = () => {
     isBackground: false
   });
 
+  // Manual refresh function
+  const handleManualRefresh = async () => {
+    try {
+      console.log('Manual refresh initiated');
+      
+      // Reset all states
+      setCurrentPage(1);
+      setNextPageInfo(null);
+      setSelectedProducts(new Set());
+      setSelectAll(false);
+      setSelectedProduct(null);
+      
+      // Force refetch with cache invalidation
+      await refetchSets();
+      
+      toast.success('Products refreshed successfully!');
+    } catch (error) {
+      console.error('Manual refresh error:', error);
+      toast.error('Failed to refresh products');
+    }
+  };
+
+  // Add keyboard shortcut for refresh
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
+        event.preventDefault();
+        handleManualRefresh();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleManualRefresh]);
+
   // Fetch all set products
   const { 
     data: setProductsData, 
     isLoading: loadingSets, 
     error: loadingError,
     refetch: refetchSets 
-  } = useQuery('setProducts', async () => {
+  } = useQuery(['setProducts', currentStore?.id, currentPage, nextPageInfo], async () => {
+    if (!currentStore?.id) {
+      throw new Error('No store selected');
+    }
+    
     try {
       // Add timeout to prevent infinite hanging
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      const response = await fetch('/api/sets/find-all', {
+      // Build URL with pagination parameters
+      const params = new URLSearchParams({
+        page: currentPage.toString()
+      });
+      
+      if (nextPageInfo) {
+        params.append('pageInfo', nextPageInfo);
+      }
+      
+      const response = await fetch(`/api/sets/${currentStore.id}/find-all?${params}`, {
         signal: controller.signal
       });
       
@@ -74,12 +126,18 @@ const SetManager = () => {
       throw error;
     }
   }, {
+    enabled: !!currentStore?.id,
     retry: 1,
     retryDelay: 1000,
     refetchOnWindowFocus: false,
+    cacheTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 30, // 30 seconds
     onError: (error) => {
       console.error('Query error:', error);
       toast.error(`Failed to load set products: ${error.message}`);
+    },
+    onSuccess: (data) => {
+      console.log('Set products loaded successfully:', data?.count || 0, 'products');
     }
   });
 
@@ -125,7 +183,10 @@ const SetManager = () => {
   // Check individual product
   const checkProductMutation = useMutation(
     async (productId) => {
-      const response = await fetch(`/api/sets/check/${productId}`);
+      if (!currentStore?.id) {
+        throw new Error('No store selected');
+      }
+      const response = await fetch(`/api/sets/${currentStore.id}/check/${productId}`);
       const data = await response.json();
       if (!data.success) throw new Error(data.error);
       return data.data;
@@ -155,7 +216,11 @@ const SetManager = () => {
           );
         }, 3000);
         
-        const response = await fetch(`/api/sets/process/${productId}`, {
+        if (!currentStore?.id) {
+          throw new Error('No store selected');
+        }
+        
+        const response = await fetch(`/api/sets/${currentStore.id}/process/${productId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -204,7 +269,11 @@ const SetManager = () => {
   // Process all products
   const processAllMutation = useMutation(
     async () => {
-      const response = await fetch('/api/sets/process-all', {
+      if (!currentStore?.id) {
+        throw new Error('No store selected');
+      }
+      
+      const response = await fetch(`/api/sets/${currentStore.id}/process-all`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ confirmProcessAll: true })
@@ -261,7 +330,11 @@ const SetManager = () => {
       try {
         console.log(`Processing product ${i + 1}/${productIds.length}:`, productId);
         
-        const response = await fetch(`/api/sets/process/${productId}`, {
+        if (!currentStore?.id) {
+          throw new Error('No store selected');
+        }
+        
+        const response = await fetch(`/api/sets/${currentStore.id}/process/${productId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -412,11 +485,11 @@ const SetManager = () => {
               </button>
               
               <button
-                onClick={() => refetchSets()}
+                onClick={handleManualRefresh}
                 className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 disabled={loadingSets}
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className={`w-4 h-4 mr-2 ${loadingSets ? 'animate-spin' : ''}`} />
                 Refresh
               </button>
               
@@ -533,85 +606,129 @@ const SetManager = () => {
           </div>
 
           {setProductsData?.setProducts?.length > 0 ? (
-            <div className="divide-y divide-gray-200">
-              {setProductsData.setProducts.map((product) => (
-                <div key={product.id} className="p-6 hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 flex-1">
-                      {/* Checkbox */}
-                      <button
-                        onClick={() => handleProductSelect(product.id)}
-                        className="flex-shrink-0"
-                      >
-                        {selectedProducts.has(product.id) ? (
-                          <CheckSquare className="w-5 h-5 text-blue-600" />
-                        ) : (
-                          <Square className="w-5 h-5 text-gray-400 hover:text-gray-600" />
-                        )}
-                      </button>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                        <h3 className="text-lg font-medium text-gray-900">
-                          {product.title}
-                        </h3>
-                        {product.isProcessed ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Processed
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            <AlertCircle className="w-3 h-3 mr-1" />
-                            Pending
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
-                        <span className="flex items-center">
-                          <IndianRupee className="w-4 h-4 mr-1" />
-                          {formatCurrency(product.price)}
-                        </span>
-                        <span className="flex items-center">
-                          <Layers className="w-4 h-4 mr-1" />
-                          {product.estimatedPieces}-piece set
-                        </span>
-                      </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 ml-4">
-                      <button
-                        onClick={() => handleCheckProduct(product.id)}
-                        className="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
-                        disabled={checkProductMutation.isLoading}
-                      >
-                        <Search className="w-4 h-4 mr-1" />
-                        Check
-                      </button>
-
-                      {!product.isProcessed && (
+            <>
+              <div className="divide-y divide-gray-200">
+                {setProductsData.setProducts.map((product) => (
+                  <div key={product.id} className="p-6 hover:bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4 flex-1">
+                        {/* Checkbox */}
                         <button
-                          onClick={() => handleProcessProduct(product.id)}
-                          className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                          disabled={processProductMutation.isLoading}
+                          onClick={() => handleProductSelect(product.id)}
+                          className="flex-shrink-0"
                         >
-                          <Play className="w-4 h-4 mr-1" />
-                          Process
+                          {selectedProducts.has(product.id) ? (
+                            <CheckSquare className="w-5 h-5 text-blue-600" />
+                          ) : (
+                            <Square className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                          )}
                         </button>
-                      )}
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-medium text-gray-900">
+                              {product.title}
+                            </h3>
+                            {product.isProcessed ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Processed
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <AlertCircle className="w-3 h-3 mr-1" />
+                                Pending
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
+                            <span className="flex items-center">
+                              <IndianRupee className="w-4 h-4 mr-1" />
+                              {formatCurrency(product.price)}
+                            </span>
+                            <span className="flex items-center">
+                              <Layers className="w-4 h-4 mr-1" />
+                              {product.estimatedPieces}-piece set
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 ml-4">
+                        <button
+                          onClick={() => handleCheckProduct(product.id)}
+                          className="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+                          disabled={checkProductMutation.isLoading}
+                        >
+                          <Search className="w-4 h-4 mr-1" />
+                          Check
+                        </button>
+
+                        {!product.isProcessed && (
+                          <button
+                            onClick={() => handleProcessProduct(product.id)}
+                            className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                            disabled={processProductMutation.isLoading}
+                          >
+                            <Play className="w-4 h-4 mr-1" />
+                            Process
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+              
+              {/* Pagination Controls */}
+              {setProductsData?.pagination && (
+                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <div className="flex items-center text-sm text-gray-700">
+                    <span>
+                      Page {setProductsData.pagination.currentPage} • 
+                      Found {setProductsData.count} set products out of {setProductsData.pagination.totalFetched} total products
+                    </span>
+                    {setProductsData.summary?.searchTerms && (
+                      <span className="ml-2 text-xs text-gray-500">
+                        (Searching for: {setProductsData.summary.searchTerms.join(', ')})
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => {
+                        setCurrentPage(1);
+                        setNextPageInfo(null);
+                      }}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    >
+                      First
+                    </button>
+                    
+                    {setProductsData.pagination.hasNext && (
+                      <button
+                        onClick={() => {
+                          setCurrentPage(prev => prev + 1);
+                          setNextPageInfo(setProductsData.pagination.nextPageInfo);
+                        }}
+                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      >
+                        Load Next 250 →
+                      </button>
+                    )}
+                  </div>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           ) : (
             <div className="p-12 text-center">
               <ShoppingBag className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No Set Products Found</h3>
               <p className="text-gray-600">
-                No products with "set" in the title were found in your store.
+                No products containing "set", "bundle", "group", "piece", "coord", or " - " were found in your store.
               </p>
             </div>
           )}
