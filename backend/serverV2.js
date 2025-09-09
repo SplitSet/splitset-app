@@ -197,17 +197,57 @@ const gracefulShutdown = async (signal) => {
 // Initialize services and start server
 const startServer = async () => {
   try {
-    // Run database migrations with robust error handling
+    // Run database migrations with deployment-resilient error handling
     if (process.env.SKIP_AUTO_MIGRATIONS !== 'true') {
-      const migrationManager = new MigrationManager(db);
-      const migrationSuccess = await migrationManager.runMigrations();
-      
-      if (migrationSuccess) {
-        logger.info('✅ Database migrations completed successfully');
-      } else {
-        logger.warn('⚠️  Migrations skipped due to deployment issues');
-        logger.warn('Server will start - run migrations manually when ready');
-        logger.warn('Use: npm run migrate or node utils/migrationManager.js');
+      logger.info('Running database migrations...');
+      try {
+        // Use direct knex migration to avoid file dependency issues
+        const pendingMigrations = await db.migrate.list();
+        const [completed, pending] = pendingMigrations;
+        
+        logger.info(`Found ${completed.length + pending.length} total migrations`);
+        logger.info(`${completed.length} already applied, ${pending.length} pending`);
+        
+        if (pending.length > 0) {
+          logger.info(`Applying ${pending.length} pending migrations...`);
+          await db.migrate.latest();
+          logger.info('✅ Database migrations completed successfully');
+        } else {
+          logger.info('✅ Database is up to date - no migrations needed');
+        }
+      } catch (migrationError) {
+        logger.error('Migration error:', migrationError.message);
+        
+        // Check if it's a file missing error (Render deployment issue)
+        if (migrationError.message.includes('missing:')) {
+          logger.warn('🔧 Migration file deployment issue detected');
+          logger.warn('This is a Render deployment problem, not a database issue');
+          logger.warn('Checking if database is actually ready...');
+          
+          try {
+            // Test database connectivity and essential tables
+            await db.raw('SELECT 1');
+            const tables = await db.raw("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
+            const tableNames = tables.rows.map(row => row.tablename);
+            
+            const essentialTables = ['stores', 'users', 'products', 'orders'];
+            const missingTables = essentialTables.filter(table => !tableNames.includes(table));
+            
+            if (missingTables.length === 0) {
+              logger.info('✅ Database connectivity OK and essential tables exist');
+              logger.info('Server will start despite migration file deployment issue');
+              logger.warn('Run manual migration later if needed: npm run migrate');
+            } else {
+              logger.error(`❌ Missing essential tables: ${missingTables.join(', ')}`);
+              throw new Error('Database not properly initialized');
+            }
+          } catch (dbError) {
+            logger.error('Database connectivity test failed:', dbError.message);
+            throw migrationError;
+          }
+        } else {
+          throw migrationError;
+        }
       }
     } else {
       logger.info('Skipping automatic migrations (SKIP_AUTO_MIGRATIONS=true)');

@@ -4,8 +4,17 @@ services:
     env: node
     region: oregon
     plan: starter
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
+    buildCommand: |
+      cd backend && 
+      npm install &&
+      echo "=== Build Phase: Checking migration files ===" &&
+      ls -la migrations/ &&
+      npm run build
+    startCommand: |
+      cd backend &&
+      echo "=== Start Phase: Verifying migration files ===" &&
+      ls -la migrations/ &&
+      npm start
     envVars:
       - key: NODE_ENV
         value: production
