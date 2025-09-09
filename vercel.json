@@ -4,8 +4,6 @@
   "buildCommand": "npm run install:all && npm run build",
   "outputDirectory": "frontend/build",
   "installCommand": "npm install",
-  "framework": null,
-  "functions": {},
   "routes": [
     {
       "src": "/static/(.*)",
