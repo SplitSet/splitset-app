@@ -77,36 +77,34 @@ curl http://localhost:5000/health
 docker-compose -f docker-compose.prod.yml logs -f app
 ```
 
-### Option 2: Railway (Easiest for beginners)
+### Option 2: Render (Recommended for production)
 
-**Best for**: Quick deployment, minimal DevOps experience
-**Cost**: $5-20/month
-**Capacity**: 50-100 stores
+**Best for**: Production deployments, scalable infrastructure
+**Cost**: $7-25/month
+**Capacity**: 100-200+ stores
 
 #### Steps
 
 1. **Connect Repository**
-   - Go to [Railway.app](https://railway.app)
+   - Go to [Render.com](https://render.com)
    - Connect your GitHub repository
-   - Select the backend folder as root
+   - Create a Web Service from your backend
 
 2. **Add Services**
-   - PostgreSQL (from Railway marketplace)
-   - Redis (from Railway marketplace)
+   - PostgreSQL (from Render dashboard)
+   - Redis (from Render dashboard)
 
 3. **Configure Environment Variables**
 ```bash
 NODE_ENV=production
-DATABASE_URL=${{Postgres.DATABASE_URL}}
-REDIS_HOST=${{Redis.REDIS_HOST}}
-REDIS_PORT=${{Redis.REDIS_PORT}}
-REDIS_PASSWORD=${{Redis.REDIS_PASSWORD}}
-FRONTEND_URL=https://your-frontend.vercel.app
+DATABASE_URL=[Your Render PostgreSQL URL]
+REDIS_URL=[Your Render Redis URL]
+FRONTEND_URL=https://your-frontend-domain.com
 ```
 
 4. **Deploy**
-   - Railway auto-deploys on git push
-   - Monitor deployment in Railway dashboard
+   - Render auto-deploys on git push
+   - Monitor deployment in Render dashboard
 
 ### Option 3: AWS/GCP (Enterprise scale)
 

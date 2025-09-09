@@ -10,6 +10,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const { logger, requestContextMiddleware } = require('./utils/logger');
 const db = require('./db');
 const QueueService = require('./services/queueService');
+const MigrationManager = require('./utils/migrationManager');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -196,17 +197,17 @@ const gracefulShutdown = async (signal) => {
 // Initialize services and start server
 const startServer = async () => {
   try {
-    // Skip automatic migrations in production to avoid deployment issues
+    // Run database migrations with robust error handling
     if (process.env.SKIP_AUTO_MIGRATIONS !== 'true') {
-      logger.info('Running database migrations...');
-      try {
-        await db.migrate.latest();
-        logger.info('Database migrations completed');
-      } catch (migrationError) {
-        logger.error('Migration error:', migrationError.message);
-        logger.warn('Skipping migrations due to error - server will start without them');
-        logger.warn('Run migrations manually using: npm run migrate');
-        // Continue server startup even if migrations fail
+      const migrationManager = new MigrationManager(db);
+      const migrationSuccess = await migrationManager.runMigrations();
+      
+      if (migrationSuccess) {
+        logger.info('✅ Database migrations completed successfully');
+      } else {
+        logger.warn('⚠️  Migrations skipped due to deployment issues');
+        logger.warn('Server will start - run migrations manually when ready');
+        logger.warn('Use: npm run migrate or node utils/migrationManager.js');
       }
     } else {
       logger.info('Skipping automatic migrations (SKIP_AUTO_MIGRATIONS=true)');

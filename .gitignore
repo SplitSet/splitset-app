@@ -6,3 +6,5 @@ backend.log
 # Large files
 **/node_modules/**/*.pack
 frontend/node_modules/
+node_modules
+.vercel

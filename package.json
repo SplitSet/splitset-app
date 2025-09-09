@@ -5,11 +5,39 @@
   "main": "backend/server.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && nodemon server.js",
+    "dev:backend": "cd backend && nodemon serverV2.js",
     "dev:frontend": "cd frontend && npm start",
     "build": "cd frontend && npm run build",
-    "start": "cd backend && node server.js",
-    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+    "start": "cd backend && node serverV2.js",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "test:coverage": "npm run test:backend:coverage && npm run test:frontend:coverage",
+    "test:backend:coverage": "cd backend && npm run test:coverage",
+    "test:frontend:coverage": "cd frontend && npm run test:coverage",
+    "test:admin": "cd backend && npm run test:admin && cd ../frontend && npm run test:admin",
+    "test:auth": "cd backend && npm run test:auth && cd ../frontend && npm run test:auth",
+    "test:splitset": "cd backend && npm run test:splitset",
+    "test:unit": "cd backend && npm run test:unit",
+    "test:integration": "cd backend && npm run test:integration",
+    "test:watch": "concurrently \"npm run test:backend:watch\" \"npm run test:frontend:watch\"",
+    "test:backend:watch": "cd backend && npm run test:watch",
+    "test:frontend:watch": "cd frontend && npm run test:watch",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint --if-present",
+    "lint:fix": "npm run lint:backend:fix && npm run lint:frontend:fix",
+    "lint:backend:fix": "cd backend && npm run lint:fix",
+    "lint:frontend:fix": "cd frontend && npm run lint:fix --if-present",
+    "test:e2e": "npx playwright test",
+    "test:e2e:headed": "npx playwright test --headed",
+    "test:e2e:debug": "npx playwright test --debug",
+    "test:report": "npx playwright show-report",
+    "test:comprehensive": "cd backend && node scripts/run-comprehensive-tests.js",
+    "test:daily": "npm run test:comprehensive",
+    "test:security": "cd backend && npm run test -- --testPathPattern=security",
+    "test:performance": "cd backend && npm run perf:all"
   },
   "keywords": [
     "shopify",
@@ -21,6 +49,8 @@
   "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@playwright/test": "^1.55.0",
+    "concurrently": "^8.2.2",
+    "playwright": "^1.55.0"
   }
 }

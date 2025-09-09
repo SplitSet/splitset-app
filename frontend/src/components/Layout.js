@@ -10,7 +10,8 @@ import {
   Home,
   Layers,
   LogOut,
-  User
+  User,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchStoreAnalytics } from '../services/api';
@@ -55,13 +56,15 @@ const Layout = ({ children }) => {
     }
   };
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Set Manager', href: '/sets', icon: Layers },
-    { name: 'Orders', href: '/orders', icon: ShoppingCart },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-    { name: 'Settings', href: '/settings', icon: Settings },
-  ];
+  const navigation = user?.role === 'admin' 
+    ? [{ name: 'Admin Panel', href: '/admin', icon: Shield }]
+    : [
+        { name: 'Dashboard', href: '/dashboard', icon: Home },
+        { name: 'Set Manager', href: '/sets', icon: Layers },
+        { name: 'Orders', href: '/orders', icon: ShoppingCart },
+        { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+        { name: 'Settings', href: '/settings', icon: Settings },
+      ];
 
   const isActive = (path) => location.pathname === path;
 

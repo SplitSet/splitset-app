@@ -50,9 +50,15 @@ nano .env.production
 # Change: FRONTEND_URL=https://your-actual-domain.com
 ```
 
-### 2. Deploy
+### 2. Deploy to Render
 ```bash
-# Deploy with automatic backup and health checks
+# Option A: Deploy via Render Dashboard
+# 1. Connect your GitHub repo to Render
+# 2. Create Web Service from your backend
+# 3. Add PostgreSQL and Redis services
+# 4. Set environment variables from .env.production
+
+# Option B: Deploy with Docker
 ./scripts/deploy.sh production
 ```
 

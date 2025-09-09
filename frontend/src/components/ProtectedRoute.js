@@ -46,6 +46,15 @@ const ProtectedRoute = ({ children, requiredRole = null, requiredStoreAccess = n
 
   // Check store-specific access
   if (requiredStoreAccess && currentStore) {
+    console.log('ProtectedRoute Debug:', {
+      requiredStoreAccess,
+      currentStore,
+      userRole: user?.role,
+      storeUserRole: currentStore?.userRole,
+      hasAccess: hasStoreAccess(currentStore.id, requiredStoreAccess),
+      isAdmin: isAdmin()
+    });
+    
     if (!hasStoreAccess(currentStore.id, requiredStoreAccess) && !isAdmin()) {
       return (
         <div className="min-h-screen flex items-center justify-center">
@@ -55,8 +64,16 @@ const ProtectedRoute = ({ children, requiredRole = null, requiredStoreAccess = n
               You need {requiredStoreAccess} access or higher to this store.
             </p>
             <p className="text-sm text-gray-500">
-              Store: {currentStore.shopDomain}
+              Store: {currentStore.shopDomain || currentStore.shop_domain}
             </p>
+            <div className="mt-6">
+              <button 
+                onClick={() => window.location.reload()} 
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Refresh Access
+              </button>
+            </div>
           </div>
         </div>
       );

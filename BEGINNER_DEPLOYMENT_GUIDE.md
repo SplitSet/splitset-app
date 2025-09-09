@@ -1,18 +1,18 @@
-# 🚀 SplitSet - Beginner's Deployment Guide (Cheapest & Easiest)
+# 🚀 SplitSet - Beginner's Deployment Guide (Production Ready)
 
-**Perfect for first-time deployment! Deploy your SplitSet app in 15 minutes for just $5-10/month.**
+**Perfect for first-time deployment! Deploy your SplitSet app in 15 minutes for just $7-15/month.**
 
 ## 💰 **Cost Breakdown (Monthly)**
-- **Railway App**: $5/month (includes 500 hours, auto-sleeps when not used)
-- **PostgreSQL Database**: $0/month (Railway free tier: 1GB)
-- **Redis**: $0/month (Railway free tier: 100MB)
+- **Render Web Service**: $7/month (always-on, production ready)
+- **PostgreSQL Database**: $7/month (Render PostgreSQL)
+- **Redis**: $7/month (Render Redis)
 - **Domain** (optional): $10/year (~$1/month)
-- **Total**: **$5-6/month** 💰
+- **Total**: **$21-22/month** 💰
 
-## 🎯 **Why Railway?** (Recommended for Beginners)
+## 🎯 **Why Render?** (Recommended for Production)
 - ✅ **Zero server management** - just click deploy
 - ✅ **Automatic HTTPS** - SSL certificates included
-- ✅ **Free database** - PostgreSQL + Redis included
+- ✅ **Production databases** - PostgreSQL + Redis
 - ✅ **Git integration** - deploys on every push
 - ✅ **Environment variables** - easy setup in web UI
 - ✅ **Monitoring included** - health checks and logs
@@ -39,10 +39,10 @@ cd /Users/ankurpandey/Desktop/GST
 - Generates JWT secret, encryption key, database passwords
 - Prepares your app for deployment
 
-### **Step 2: Create Railway Account (1 minute)**
+### **Step 2: Create Render Account (1 minute)**
 
-1. **Go to**: [railway.app](https://railway.app)
-2. **Click**: "Start a New Project"
+1. **Go to**: [render.com](https://render.com)
+2. **Click**: "Get Started"
 3. **Sign up** with GitHub (recommended) or email
 4. **Verify** your account
 

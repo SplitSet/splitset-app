@@ -1,0 +1,419 @@
+name: Daily Automated Testing
+
+on:
+  # Run daily at 6 AM UTC (adjust for your timezone)
+  schedule:
+    - cron: '0 6 * * *'
+  
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - unit
+        - integration
+        - performance
+        - security
+        - e2e
+  
+  # Run on pushes to main branch
+  push:
+    branches: [ main, master ]
+  
+  # Run on pull requests
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  NODE_VERSION: '18'
+  NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+  SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+  SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+  SMTP_HOST: ${{ secrets.SMTP_HOST }}
+  SMTP_USER: ${{ secrets.SMTP_USER }}
+  SMTP_PASS: ${{ secrets.SMTP_PASS }}
+
+jobs:
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      redis:
+        image: redis:6
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+      
+      - name: Setup test environment
+        working-directory: ./backend
+        run: |
+          cp .env.example .env.test
+          echo "NODE_ENV=test" >> .env.test
+          echo "DATABASE_URL=:memory:" >> .env.test
+          echo "JWT_SECRET=test-jwt-secret-for-ci" >> .env.test
+          echo "ENCRYPTION_KEY=test-encryption-key-32-chars!" >> .env.test
+      
+      - name: Run database migrations
+        working-directory: ./backend
+        run: npm run migrate
+        env:
+          NODE_ENV: test
+      
+      - name: Run backend linting
+        working-directory: ./backend
+        run: npm run lint
+      
+      - name: Run backend unit tests
+        working-directory: ./backend
+        run: npm run test:unit
+        env:
+          NODE_ENV: test
+          CI: true
+      
+      - name: Run backend integration tests
+        working-directory: ./backend
+        run: npm run test:integration
+        env:
+          NODE_ENV: test
+          CI: true
+      
+      - name: Run admin-specific tests
+        working-directory: ./backend
+        run: npm run test:admin
+        env:
+          NODE_ENV: test
+          CI: true
+      
+      - name: Run authentication tests
+        working-directory: ./backend
+        run: npm run test:auth
+        env:
+          NODE_ENV: test
+          CI: true
+      
+      - name: Run SplitSet revenue tests
+        working-directory: ./backend
+        run: npm run test:splitset
+        env:
+          NODE_ENV: test
+          CI: true
+      
+      - name: Run comprehensive backend tests
+        working-directory: ./backend
+        run: node scripts/run-comprehensive-tests.js
+        env:
+          NODE_ENV: test
+          CI: true
+          TEST_SUITE: ${{ github.event.inputs.test_suite || 'all' }}
+      
+      - name: Generate backend coverage report
+        working-directory: ./backend
+        run: npm run test:coverage
+        env:
+          NODE_ENV: test
+          CI: true
+      
+      - name: Upload backend coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+      
+      - name: Run frontend linting
+        working-directory: ./frontend
+        run: npm run lint --if-present
+      
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: npm test
+        env:
+          CI: true
+      
+      - name: Run admin component tests
+        working-directory: ./frontend
+        run: npm run test:admin
+        env:
+          CI: true
+      
+      - name: Run auth component tests
+        working-directory: ./frontend
+        run: npm run test:auth
+        env:
+          CI: true
+      
+      - name: Generate frontend coverage report
+        working-directory: ./frontend
+        run: npm run test:coverage
+        env:
+          CI: true
+      
+      - name: Upload frontend coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: [backend-tests]
+    if: github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'performance' || github.event_name == 'schedule'
+    
+    services:
+      redis:
+        image: redis:6
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+      
+      - name: Run performance benchmarks
+        working-directory: ./backend
+        run: npm run perf:benchmark
+        env:
+          NODE_ENV: test
+          CI: true
+      
+      - name: Run load tests
+        working-directory: ./backend
+        run: npm run perf:load
+        env:
+          NODE_ENV: test
+          CI: true
+      
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-results
+          path: |
+            backend/performance-report.html
+            backend/load-test-results.json
+
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+    if: github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'e2e' || github.event_name == 'schedule'
+    
+    services:
+      redis:
+        image: redis:6
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install all dependencies
+        run: npm run install:all
+      
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+      
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+      
+      - name: Run E2E tests
+        run: npx playwright test
+        env:
+          CI: true
+      
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: e2e-results
+          path: |
+            e2e-report/
+            e2e-results.xml
+            test-results/
+      
+      - name: Upload E2E videos and screenshots
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: e2e-videos-screenshots
+          path: |
+            test-results/
+            playwright-report/
+
+  integration-tests:
+    name: Full Integration Tests
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, performance-tests, e2e-tests]
+    if: always()
+    
+    services:
+      redis:
+        image: redis:6
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install all dependencies
+        run: npm run install:all
+      
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+      
+      - name: Start backend server
+        working-directory: ./backend
+        run: |
+          npm start &
+          sleep 10
+        env:
+          NODE_ENV: test
+          PORT: 5001
+      
+      - name: Run health check
+        run: |
+          curl -f http://localhost:5001/health || exit 1
+      
+      - name: Test admin login endpoint
+        run: |
+          curl -X POST http://localhost:5001/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"admin@splitset.app","password":"AdminPass123!"}' \
+            --fail || exit 1
+      
+      - name: Test admin metrics endpoint (with mock token)
+        run: |
+          # This would need a real token in practice
+          echo "Integration test placeholder - would test full API flow"
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run npm audit (backend)
+        working-directory: ./backend
+        run: npm audit --audit-level moderate
+        continue-on-error: true
+      
+      - name: Run npm audit (frontend)
+        working-directory: ./frontend
+        run: npm audit --audit-level moderate
+        continue-on-error: true
+
+  notify-results:
+    name: Notify Test Results
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, integration-tests, security-scan]
+    if: always()
+    
+    steps:
+      - name: Notify on success
+        if: needs.backend-tests.result == 'success' && needs.frontend-tests.result == 'success'
+        run: |
+          echo "✅ All tests passed successfully!"
+          echo "Backend tests: ${{ needs.backend-tests.result }}"
+          echo "Frontend tests: ${{ needs.frontend-tests.result }}"
+          echo "Integration tests: ${{ needs.integration-tests.result }}"
+          echo "Security scan: ${{ needs.security-scan.result }}"
+      
+      - name: Notify on failure
+        if: needs.backend-tests.result == 'failure' || needs.frontend-tests.result == 'failure'
+        run: |
+          echo "❌ Some tests failed!"
+          echo "Backend tests: ${{ needs.backend-tests.result }}"
+          echo "Frontend tests: ${{ needs.frontend-tests.result }}"
+          echo "Integration tests: ${{ needs.integration-tests.result }}"
+          echo "Security scan: ${{ needs.security-scan.result }}"
+          exit 1

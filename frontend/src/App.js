@@ -19,6 +19,8 @@ import SetManager from './pages/SetManager';
 import Orders from './pages/Orders';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import BasicSettings from './pages/BasicSettings';
+import Admin from './pages/Admin';
 
 // Styles
 import './index.css';
@@ -91,9 +93,29 @@ function App() {
                 <Route 
                   path="/settings" 
                   element={
-                    <ProtectedRoute requiredStoreAccess="admin">
+                    <ProtectedRoute>
+                      <Layout>
+                        <BasicSettings />
+                      </Layout>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/settings/advanced" 
+                  element={
+                    <ProtectedRoute requiredStoreAccess="owner">
                       <Layout>
                         <Settings />
+                      </Layout>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <Layout>
+                        <Admin />
                       </Layout>
                     </ProtectedRoute>
                   } 

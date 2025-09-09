@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: splitset-backend
+    env: node
+    region: oregon
+    plan: starter
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+    # Ensure all files are included in deployment
+    rootDir: .
+    # Explicitly include backend directory and all subdirectories
+    includeFiles:
+      - backend/**/*
+      - package.json
+      - README.md

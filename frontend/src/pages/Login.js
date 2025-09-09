@@ -73,7 +73,9 @@ const Login = () => {
       
       if (result.success) {
         toast.success('Login successful!');
-        const from = location.state?.from?.pathname || '/dashboard';
+        // Redirect admin users directly to admin panel
+        const defaultPath = result.data?.user?.role === 'admin' ? '/admin' : '/dashboard';
+        const from = location.state?.from?.pathname || defaultPath;
         navigate(from, { replace: true });
       } else {
         toast.error(result.error || 'Login failed');

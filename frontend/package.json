@@ -4,9 +4,6 @@
   "description": "Frontend for SplitSet - Shopify Product Splitting App",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^14.5.1",
     "axios": "^1.6.2",
     "chart.js": "^4.4.1",
     "clsx": "^2.0.0",
@@ -22,13 +19,18 @@
     "react-query": "^3.39.3",
     "react-router-dom": "^6.20.1",
     "react-scripts": "5.0.1",
+    "recharts": "^3.2.0",
     "tailwind-merge": "^2.2.0",
     "web-vitals": "^3.5.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "react-scripts test --watchAll=false",
+    "test:watch": "react-scripts test",
+    "test:coverage": "react-scripts test --coverage --watchAll=false",
+    "test:admin": "react-scripts test --testNamePattern='Admin' --watchAll=false",
+    "test:auth": "react-scripts test --testNamePattern='Auth' --watchAll=false",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -50,7 +52,11 @@
     ]
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "autoprefixer": "^10.4.16",
+    "jest-environment-jsdom": "^30.1.2",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0"
   }
