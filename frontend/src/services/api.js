@@ -234,7 +234,7 @@ export const refreshSplitterSummary = async () => {
 
 // Authentication API
 export const register = async (userData) => {
-  const response = await api.post('/auth/register', userData);
+  const response = await api.post('/api/auth/register', userData);
   if (response.data?.token) {
     localStorage.setItem('authToken', response.data.token);
     localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -243,7 +243,7 @@ export const register = async (userData) => {
 };
 
 export const login = async (credentials) => {
-  const response = await api.post('/auth/login', credentials);
+  const response = await api.post('/api/auth/login', credentials);
   if (response.data?.token) {
     localStorage.setItem('authToken', response.data.token);
     localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -253,7 +253,7 @@ export const login = async (credentials) => {
 
 export const logout = async () => {
   try {
-    await api.post('/auth/logout');
+    await api.post('/api/auth/logout');
   } catch (error) {
     // Continue with local logout even if API call fails
   } finally {
@@ -263,7 +263,7 @@ export const logout = async () => {
 };
 
 export const getCurrentUser = async () => {
-  const response = await api.get('/auth/me');
+  const response = await api.get('/api/auth/me');
   if (response.data?.user) {
     localStorage.setItem('user', JSON.stringify(response.data.user));
   }
