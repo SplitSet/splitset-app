@@ -196,23 +196,21 @@ const gracefulShutdown = async (signal) => {
 // Initialize services and start server
 const startServer = async () => {
   try {
-    // Run database migrations with error handling
-    logger.info('Running database migrations...');
-    try {
-      await db.migrate.latest();
-      logger.info('Database migrations completed');
-    } catch (migrationError) {
-      logger.error('Migration error:', migrationError.message);
-      
-      // Check if it's the specific missing file error
-      if (migrationError.message.includes('007_create_admin_tracking.js')) {
-        logger.warn('Missing migration file 007_create_admin_tracking.js - continuing without it for now');
-        logger.warn('This migration will be applied in the next deployment');
-        // Continue server startup
-      } else {
-        // Re-throw other migration errors
-        throw migrationError;
+    // Skip automatic migrations in production to avoid deployment issues
+    if (process.env.SKIP_AUTO_MIGRATIONS !== 'true') {
+      logger.info('Running database migrations...');
+      try {
+        await db.migrate.latest();
+        logger.info('Database migrations completed');
+      } catch (migrationError) {
+        logger.error('Migration error:', migrationError.message);
+        logger.warn('Skipping migrations due to error - server will start without them');
+        logger.warn('Run migrations manually using: npm run migrate');
+        // Continue server startup even if migrations fail
       }
+    } else {
+      logger.info('Skipping automatic migrations (SKIP_AUTO_MIGRATIONS=true)');
+      logger.info('Run migrations manually when ready');
     }
     
     // Initialize queue service
